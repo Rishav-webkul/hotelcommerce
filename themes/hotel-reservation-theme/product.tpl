@@ -271,7 +271,16 @@
 							<form action="" method="post">
 								<div class="form-group htl_location_block">
 									<label for="" class="control-label">{l s='Hotel Location'}</label>
-									<p>{$hotel_location|escape:'html':'UTF-8'}</p>
+									<p>
+										{$hotel_location|escape:'html':'UTF-8'}
+										{if $display_google_maps && ($hotel->latitude|floatval != 0 && $hotel->longitude|floatval != 0)}
+											<a href="https://www.google.com/maps/dir/?api=1&destination={$hotel->latitude|floatval},{$hotel->longitude|floatval}"
+												class="btn-google-maps-directions"
+												target="_blank">
+												<i class="icon-map-marker"></i>
+											</a>
+										{/if}
+									</p>
 								</div>
 								{if $product->show_price && !isset($restricted_country_mode) && !$PS_CATALOG_MODE && !$order_date_restrict}
 									<div class="row">

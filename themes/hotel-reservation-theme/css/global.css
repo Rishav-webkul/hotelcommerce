@@ -1827,6 +1827,13 @@ textarea.input-lg, .input-group-lg > textarea.form-control,
 .btn-block + .btn-block {
   margin-top: 5px; }
 
+.btn-google-maps-directions {
+  padding: 0 4px; }
+  .btn-google-maps-directions i {
+    font-size: 22px;
+    position: relative;
+    bottom: 2px; }
+
 input[type="submit"].btn-block,
 input[type="reset"].btn-block,
 input[type="button"].btn-block {

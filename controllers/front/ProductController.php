@@ -229,6 +229,8 @@ class ProductControllerCore extends FrontController
                 }
             }
 
+            // Assign template vars related to the hotel
+            $this->assignHotel();
             // Assign template vars related to the category + execute hooks related to the category
             $this->assignCategory();
             // Assign template vars related to the price and tax
@@ -445,6 +447,7 @@ class ProductControllerCore extends FrontController
                         'category-'.(isset($this->category) ? $this->category->getFieldByLang('link_rewrite') : ''),
                     ),
                     'display_discount_price' => Configuration::get('PS_DISPLAY_DISCOUNT_PRICE'),
+                    'display_google_maps' => Configuration::get('WK_GOOGLE_ACTIVE_MAP'),
                 )
             );
         }
@@ -737,6 +740,23 @@ class ProductControllerCore extends FrontController
             'attribute_anchor_separator' => Configuration::get('PS_ATTRIBUTE_ANCHOR_SEPARATOR')
             )
         );
+    }
+
+    /**
+     * Assign template vars related to hotel
+     */
+    protected function assignHotel()
+    {
+        if ($idRoomType = $this->product->id) {
+            $objHotelRoomType = new HotelRoomType($idRoomType);
+            $objHotelBranchInfo = new HotelBranchInformation($objHotelRoomType->id_hotel, $this->context->language->id);
+            if (Validate::isLoadedObject($objHotelBranchInfo)) {
+                $this->context->smarty->assign(array(
+                    'hotel' => $objHotelBranchInfo,
+                    'id_hotel' => (int)$objHotelBranchInfo->id,
+                ));
+            }
+        }
     }
 
     /**
