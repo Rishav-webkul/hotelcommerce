@@ -2329,12 +2329,40 @@ class AdminOrdersControllerCore extends AdminController
         )));
     }
 
+    protected function createFeaturePrice($params)
+    {
+        $feature_price_name = array();
+        foreach (Language::getIDs(true) as $id_lang) {
+            $feature_price_name[$id_lang] = 'Auto-generated';
+        }
+
+        $hrt_feature_price = new HotelRoomTypeFeaturePricing();
+        $hrt_feature_price->id_product = (int) $params['id_product'];
+        $hrt_feature_price->id_cart = (int) $params['id_cart'];
+        $hrt_feature_price->id_guest = (int) $params['id_guest'];
+        $hrt_feature_price->id_room = (int) $params['id_room'];
+        $hrt_feature_price->feature_price_name = $feature_price_name;
+        $hrt_feature_price->date_selection_type = 1; // date range
+        $hrt_feature_price->date_from = date('Y-m-d', strtotime($params['date_from']));
+        $hrt_feature_price->date_to = date('Y-m-d', strtotime($params['date_to']));
+        $hrt_feature_price->is_special_days_exists = 0;
+        $hrt_feature_price->special_days = json_encode(false);
+        $hrt_feature_price->impact_way = 3; // fix price
+        $hrt_feature_price->impact_type = 2; // fixed price
+        $hrt_feature_price->impact_value = $params['price'];
+        $hrt_feature_price->active = 1;
+        $hrt_feature_price->groupBox = array_column(Group::getGroups($this->context->language->id), 'id_group');
+        $hrt_feature_price->add();
+    }
+
     public function ajaxProcessEditProductOnOrder()
     {
         // Return value
         $res = true;
         $id_order = (int) Tools::getValue('id_order');
         $order = new Order($id_order);
+        $cart = new Cart($order->id_cart);
+        $customer = new Cart($order->id_customer);
         //$order_detail = new OrderDetail((int)Tools::getValue('product_id_order_detail'));
         $order_detail = new OrderDetail((int) Tools::getValue('order_detail_id'));//by webkul id_order_detail from our table
         $this->doEditProductValidation($order_detail, $order, isset($order_invoice) ? $order_invoice : null);
@@ -2351,10 +2379,12 @@ class AdminOrdersControllerCore extends AdminController
         $id_hotel = trim(Tools::getValue('id_hotel'));
         $id_room = trim(Tools::getValue('id_room'));
         $id_product = trim(Tools::getValue('id_product'));
+        $room_unit_price = trim(Tools::getValue('room_unit_price'));
         $obj_booking_detail = new HotelBookingDetail();
         $product_quantity = (int) $obj_booking_detail->getNumberOfDays($new_date_from, $new_date_to);
         $old_product_quantity =  (int) $obj_booking_detail->getNumberOfDays($old_date_from, $old_date_to);
         $qty_diff = $product_quantity - $old_product_quantity;
+
         /*By webkul to validate fields before deleting the cart and order data form the tables*/
         if ($id_hotel == '') {
             die(json_encode(array(
@@ -2396,6 +2426,16 @@ class AdminOrdersControllerCore extends AdminController
                 'result' => false,
                 'error' => Tools::displayError('Check out Date Should be after Check In date.'),
             )));
+        } elseif ($room_unit_price == '') {
+            die(json_encode(array(
+                'result' => false,
+                'error' => Tools::displayError('Please enter unit price.'),
+            )));
+        } elseif (!Validate::isPrice($room_unit_price)) {
+            die(json_encode(array(
+                'result' => false,
+                'error' => Tools::displayError('Please enter a valid unit price.'),
+            )));
         } elseif (!Validate::isUnsignedInt($product_quantity)) {
             die(json_encode(array(
                 'result' => false,
@@ -2411,28 +2451,58 @@ class AdminOrdersControllerCore extends AdminController
             )));
         }
 
-        // By webkul to calculate rates of the product from hotelreservation syatem tables with feature prices....
+        // By webkul to calculate rates of the product from hotelreservationsystem tables with feature prices....
+        // add feature price for updated price
+
         $hotelCartBookingData = new HotelCartBookingData();
         $totalProductPriceBeforeTE = (float) $order_detail->total_price_tax_excl;
         $totalProductPriceBeforeTI = (float) $order_detail->total_price_tax_incl;
         $totalProductPriceAfterTE = 0;
         $totalProductPriceAfterTI = 0;
+        $totalRoomPriceAfterTE = 0;
+        $totalRoomPriceAfterTI = 0;
         $bookedRooms = $obj_booking_detail->getBookedRoomsByIdOrderDetail((int) Tools::getValue('order_detail_id'), $id_product);
         if ($bookedRooms) {
+            $params = array(
+                'id_cart' => $cart->id,
+                'id_guest' => $cart->id_guest,
+                'price' => $room_unit_price,
+            );
+
             foreach ($bookedRooms as $roomInfo) {
+                $params['id_product'] = $roomInfo['id_product'];
+                $params['id_room'] = $roomInfo['id_room'];
+
                 if ($roomInfo['id_room'] == $id_room && (strtotime($roomInfo['date_from']) == strtotime($old_date_from))) {
-                    $roomTotalPrice = HotelRoomTypeFeaturePricing::getRoomTypeTotalPrice($roomInfo['id_product'], $new_date_from, $new_date_to);
+                    $params = array_merge($params, array('date_from' => $new_date_from, 'date_to' => $new_date_to));
+                    $this->createFeaturePrice($params);
+
+                    $roomTotalPrice = HotelRoomTypeFeaturePricing::getRoomTypeTotalPrice(
+                        $roomInfo['id_product'],
+                        $new_date_from,
+                        $new_date_to,
+                        0,
+                        Group::getCurrent()->id,
+                        $cart->id,
+                        $cart->id_guest,
+                        $roomInfo['id_room']
+                    );
+
                     $totalProductPriceAfterTE += (float) $roomTotalPrice['total_price_tax_excl'];
                     $totalProductPriceAfterTI += (float) $roomTotalPrice['total_price_tax_incl'];
+
+                    $totalRoomPriceAfterTE += (float) $roomTotalPrice['total_price_tax_excl'];
+                    $totalRoomPriceAfterTI += (float) $roomTotalPrice['total_price_tax_incl'];
                 } else {
-                    $roomTotalPrice = HotelRoomTypeFeaturePricing::getRoomTypeTotalPrice($roomInfo['id_product'], $roomInfo['date_from'], $roomInfo['date_to']);
                     $totalProductPriceAfterTE += (float) $roomInfo['total_price_tax_excl'];
                     $totalProductPriceAfterTI += (float) $roomInfo['total_price_tax_incl'];
                 }
             }
         }
-        // END
 
+        // delete cart feature prices after booking update success
+        HotelRoomTypeFeaturePricing::deleteByIdCart($cart->id);
+        // END
 
         /*This code is commented by webkul because in our case quantity of the product will be number of days for which room is booked*/
         // If multiple product_quantity, the order details concern a product customized
@@ -2600,13 +2670,18 @@ class AdminOrdersControllerCore extends AdminController
         );
 
         /*By webkul to edit the Hotel Cart and Hotel Order tables when editing the room for the order detail page*/
+        $new_total_price = array(
+            'tax_excl' => $totalRoomPriceAfterTE,
+            'tax_incl' => $totalRoomPriceAfterTI,
+        );
         if ($update_htl_tables = $obj_booking_detail->UpdateHotelCartHotelOrderOnOrderEdit(
             $id_order,
             $id_room,
             $old_date_from,
             $old_date_to,
             $new_date_from,
-            $new_date_to
+            $new_date_to,
+            $new_total_price
         )) {
             // update extra demands total prices if dates are changes (price calc method for each day)
             if ($extraDemands) {

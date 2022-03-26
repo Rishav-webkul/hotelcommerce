@@ -394,7 +394,12 @@ class hotelreservationsystem extends Module
                     $total_price = HotelRoomTypeFeaturePricing::getRoomTypeTotalPrice(
                         $idProduct,
                         $objCartBkData->date_from,
-                        $objCartBkData->date_to
+                        $objCartBkData->date_to,
+                        0,
+                        (int)Group::getCurrent()->id,
+                        $objCartBkData->id_cart,
+                        $objCartBkData->id_guest,
+                        $objCartBkData->id_room
                     );
                     $objHtlBkDtl->date_from = $objCartBkData->date_from;
                     $objHtlBkDtl->date_to = $objCartBkData->date_to;
@@ -503,6 +508,9 @@ class hotelreservationsystem extends Module
                 }
             }
         }
+
+        // delete cart feature prices after booking creation success
+        HotelRoomTypeFeaturePricing::deleteByIdCart($cart->id);
 
         if (isset($_COOKIE['wk_id_cart'])) {
             setcookie('wk_id_cart', ' ', time() - 86400, '/');
