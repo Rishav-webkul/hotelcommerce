@@ -814,6 +814,11 @@ class HotelBookingDetail extends ObjectModel
      */
     public function DataForFrontSearch($date_from, $date_to, $id_hotel, $id_product = 0, $for_room_type = 0, $adult = 0, $children = 0, $ratting = -1, $amenities = 0, $price = 0, $id_cart = 0, $id_guest = 0)
     {
+        $isHotelReviewEnabled = Module::isEnabled('qlohotelreview');
+        if ($isHotelReviewEnabled) {
+            require_once _PS_MODULE_DIR_.'qlohotelreview/classes/QhrHotelReview.php';
+        }
+
         $this->context = Context::getContext();
 
         $bookingParams = array();
@@ -842,7 +847,7 @@ class HotelBookingDetail extends ObjectModel
                     if (empty($value['data']['available'])) {
                         unset($booking_data['rm_data'][$key]);
                     } else {
-                        if (Module::isEnabled('qlohotelreview')) {
+                        if ($isHotelReviewEnabled) {
                             $prod_ratting = QhrHotelReview::getAverageRatingByIdProduct($value['id_product']);
                         }
                         if (empty($prod_ratting)) {
@@ -906,7 +911,7 @@ class HotelBookingDetail extends ObjectModel
                                     $booking_data['rm_data'][$key]['children'] = $rm_dtl['children'];
 
                                     $booking_data['rm_data'][$key]['ratting'] = $prod_ratting;
-                                    if (Module::isEnabled('qlohotelreview')) {
+                                    if ($isHotelReviewEnabled) {
                                         $booking_data['rm_data'][$key]['num_review'] = QhrHotelReview::getCountByIdProduct($value['id_product']);
                                     }
 
