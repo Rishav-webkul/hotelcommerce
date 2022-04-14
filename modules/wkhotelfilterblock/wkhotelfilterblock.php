@@ -243,10 +243,10 @@ class wkhotelfilterblock extends Module
             $num_days = $obj_booking_detail->getNumberOfDays($date_from, $date_to);
 
             $warning_num = Configuration::get('WK_ROOM_LEFT_WARNING_NUMBER');
-            $product_comment_installed = Module::isInstalled('productcomments');
+            $is_hotel_review_enabled = Module::isEnabled('qlohotelreview');
             $ratting_img = _MODULE_DIR_.$this->name.'/views/img/stars-sprite-image.png';
             $this->context->smarty->assign(array(
-                'product_comment_installed' => $product_comment_installed,
+                'is_hotel_review_enabled' => $is_hotel_review_enabled,
                 'warning_num' => $warning_num,
                 'all_feat' => $all_feat,
                 'max_adult' => $max_adult,

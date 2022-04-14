@@ -19,7 +19,7 @@
 
 <div id="filter_results" class="row block">
 	<div class="col-sm-12">
-		{if $product_comment_installed && isset($config) && $config['SHOW_RATTING_FILTER']}
+		{if $is_hotel_review_enabled && isset($config) && $config['SHOW_RATTING_FILTER']}
 			<div class="row margin-lr-0 layered_filter_cont">
 				<div class="col-sm-12 layered_filter_heading">
 					<div class="row margin-lr-0">

@@ -814,10 +814,6 @@ class HotelBookingDetail extends ObjectModel
      */
     public function DataForFrontSearch($date_from, $date_to, $id_hotel, $id_product = 0, $for_room_type = 0, $adult = 0, $children = 0, $ratting = -1, $amenities = 0, $price = 0, $id_cart = 0, $id_guest = 0)
     {
-        if (Module::isInstalled('productcomments')) {
-            require_once _PS_MODULE_DIR_.'productcomments/ProductComment.php';
-        }
-
         $this->context = Context::getContext();
 
         $bookingParams = array();
@@ -846,8 +842,8 @@ class HotelBookingDetail extends ObjectModel
                     if (empty($value['data']['available'])) {
                         unset($booking_data['rm_data'][$key]);
                     } else {
-                        if (Module::isInstalled('productcomments')) {
-                            $prod_ratting = ProductComment::getAverageGrade($value['id_product'])['grade'];
+                        if (Module::isEnabled('qlohotelreview')) {
+                            $prod_ratting = QhrHotelReview::getAverageRatingByIdProduct($value['id_product']);
                         }
                         if (empty($prod_ratting)) {
                             $prod_ratting = 0;
@@ -910,8 +906,8 @@ class HotelBookingDetail extends ObjectModel
                                     $booking_data['rm_data'][$key]['children'] = $rm_dtl['children'];
 
                                     $booking_data['rm_data'][$key]['ratting'] = $prod_ratting;
-                                    if (Module::isInstalled('productcomments')) {
-                                        $booking_data['rm_data'][$key]['num_review'] = ProductComment::getCommentNumber($value['id_product']);
+                                    if (Module::isEnabled('qlohotelreview')) {
+                                        $booking_data['rm_data'][$key]['num_review'] = QhrHotelReview::getCountByIdProduct($value['id_product']);
                                     }
 
                                     if (Configuration::get('PS_REWRITING_SETTINGS')) {

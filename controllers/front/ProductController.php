@@ -346,11 +346,11 @@ class ProductControllerCore extends FrontController
                 if (Tools::getValue('error')) {
                     $this->context->smarty->assign('error', Tools::getValue('error'));
                 }
-                if (Module::isInstalled('productcomments')) {
+                if (Module::isEnabled('qlohotelreview')) {
                     $this->context->smarty->assign(
                         array(
-                            'num_reviews' => ProductComment::getCommentNumber($this->product->id),
-                            'ratting' => ProductComment::getAverageGrade($this->product->id)['grade'],
+                            'num_reviews' => QhrHotelReview::getCountByIdProduct($this->product->id),
+                            'ratting' => QhrHotelReview::getAverageRatingByIdProduct($this->product->id),
                         )
                     );
                 }
