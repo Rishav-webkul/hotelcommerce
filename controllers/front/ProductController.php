@@ -324,12 +324,6 @@ class ProductControllerCore extends FrontController
                     $total_available_rooms = $hotel_room_data['stats']['num_avail'];
                 }
                 $hotel_branch_obj = new HotelBranchInformation($hotel_id);
-                if (isset($this->context->cart->id)) {
-                    $num_cart_rooms = $obj_htl_cart_booking_data->getCountRoomsByIdCartIdProduct($this->context->cart->id, $this->product->id, $date_from, $date_to);
-                    if ($num_cart_rooms) {
-                        $total_available_rooms = $total_available_rooms - $num_cart_rooms;
-                    }
-                }
                 /*Max date of ordering for order restrict*/
                 $order_date_restrict = false;
                 $max_order_date = HotelOrderRestrictDate::getMaxOrderDate($hotel_id);
