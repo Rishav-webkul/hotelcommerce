@@ -146,7 +146,7 @@ class CategoryControllerCore extends FrontController
             $id_hotel = HotelBranchInformation::getHotelIdByIdCategory($htl_id_category);
 
             $id_cart = $this->context->cart->id;
-            $id_guest = $this->context->cookie->id_guest;
+            $id_guest = $this->context->cart->id_guest;
 
             $obj_booking_dtl = new HotelBookingDetail();
             $booking_data = $obj_booking_dtl->DataForFrontSearch($date_from, $date_to, $id_hotel, 0, 0, 0, 0, -1, 0, 0, $id_cart, $id_guest);
