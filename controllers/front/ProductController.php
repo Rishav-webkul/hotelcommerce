@@ -318,7 +318,7 @@ class ProductControllerCore extends FrontController
                 }
                 //END
                 $obj_booking_dtl = new HotelBookingDetail();
-                $hotel_room_data = $obj_booking_dtl->DataForFrontSearch($date_from, $date_to, $hotel_id, $this->product->id, 1, 0, 0, -1, 0, 0, $this->context->cart->id, $this->context->cookie->id_guest);
+                $hotel_room_data = $obj_booking_dtl->DataForFrontSearch($date_from, $date_to, $hotel_id, $this->product->id, 1, 0, 0, -1, 0, 0, $this->context->cart->id, $this->context->cart->id_guest);
 
                 if ($hotel_room_data) {
                     $total_available_rooms = $hotel_room_data['stats']['num_avail'];
