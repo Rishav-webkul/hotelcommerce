@@ -848,7 +848,7 @@ class HotelBookingDetail extends ObjectModel
                         unset($booking_data['rm_data'][$key]);
                     } else {
                         if ($isHotelReviewEnabled) {
-                            $prod_ratting = QhrHotelReview::getAverageRatingByIdHotel($value['id_product']);
+                            $prod_ratting = QhrHotelReview::getAverageRatingByIdHotel($id_hotel);
                         }
                         if (empty($prod_ratting)) {
                             $prod_ratting = 0;
@@ -912,7 +912,7 @@ class HotelBookingDetail extends ObjectModel
 
                                     $booking_data['rm_data'][$key]['ratting'] = $prod_ratting;
                                     if ($isHotelReviewEnabled) {
-                                        $booking_data['rm_data'][$key]['num_review'] = QhrHotelReview::getReviewCountByIdHotel($value['id_product']);
+                                        $booking_data['rm_data'][$key]['num_review'] = QhrHotelReview::getReviewCountByIdHotel($id_hotel);
                                     }
 
                                     if (Configuration::get('PS_REWRITING_SETTINGS')) {

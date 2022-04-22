@@ -349,8 +349,8 @@ class ProductControllerCore extends FrontController
                 if (Module::isEnabled('qlohotelreview')) {
                     $this->context->smarty->assign(
                         array(
-                            'num_reviews' => QhrHotelReview::getReviewCountByIdHotel($this->product->id),
-                            'ratting' => QhrHotelReview::getAverageRatingByIdHotel($this->product->id),
+                            'num_reviews' => QhrHotelReview::getReviewCountByIdHotel($hotel_id),
+                            'ratting' => QhrHotelReview::getAverageRatingByIdHotel($hotel_id),
                         )
                     );
                 }
